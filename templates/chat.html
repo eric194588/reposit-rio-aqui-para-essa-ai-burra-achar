@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat LLM - App dos Alunos</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+  <div class="chat">
+    <!-- Cabeçalho -->
+    <header class="topo">
+      <span class="ponto"></span>
+      <div>
+        <h1>Chat LLM - App dos Alunos</h1>
+        <small>Conectado à Groq ({{ modelo }})</small>
+      </div>
+      <button id="limpar" class="limpar" title="Começar nova conversa">Nova conversa</button>
+    </header>
+ 
+    <!-- Área onde aparecem as mensagens -->
+    <main id="mensagens" class="mensagens">
+      <div class="msg ia">
+        <span class="avatar">IA</span>
+        <div class="bolha">Olá! Sou um modelo de linguagem conectado pela API da Groq. Pergunte qualquer coisa sobre Inteligência Artificial ou programação que eu te ajudo.</div>
+      </div>
+    </main>
+ 
+    <!-- Campo de digitação -->
+    <form id="formulario" class="entrada">
+      <input id="texto" type="text" placeholder="Digite sua pergunta sobre IA..." autocomplete="off" required>
+      <button type="submit" id="enviar">Enviar ➤</button>
+    </form>
+    <p class="dica">Dica: peça para o modelo explicar passo a passo como funciona um LLM ou para gerar exercícios.</p>
+  </div>
+ 
+  <script>
+    // Memória da conversa: guarda tudo o que foi dito (aluno e IA)
+    let historico = [];
+ 
+    const areaMensagens = document.getElementById("mensagens");
+    const formulario = document.getElementById("formulario");
+    const campoTexto = document.getElementById("texto");
+    const botaoEnviar = document.getElementById("enviar");
+ 
+    // Cria uma bolha de mensagem na tela
+    function mostrarMensagem(texto, quem) {
+      const linha = document.createElement("div");
+      linha.className = "msg " + quem;
+ 
+      const avatar = document.createElement("span");
+      avatar.className = "avatar";
+      avatar.textContent = quem === "ia" ? "IA" : "Eu";
+ 
+      const bolha = document.createElement("div");
+      bolha.className = "bolha";
+      bolha.textContent = texto;
+ 
+      linha.appendChild(avatar);
+      linha.appendChild(bolha);
+      areaMensagens.appendChild(linha);
+      areaMensagens.scrollTop = areaMensagens.scrollHeight;
+      return bolha;
+    }
+ 
+    // Quando o aluno clica em Enviar (ou aperta Enter)
+    formulario.addEventListener("submit", async function (evento) {
+      evento.preventDefault();
+      const pergunta = campoTexto.value.trim();
+      if (!pergunta) return;
+ 
+      mostrarMensagem(pergunta, "usuario");
+      historico.push({ role: "user", content: pergunta });
+      campoTexto.value = "";
+      botaoEnviar.disabled = true;
+ 
+      const bolhaIA = mostrarMensagem("Pensando...", "ia");
+ 
+      try {
+        const resposta = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ historico: historico })
+        });
+        const dados = await resposta.json();
+        bolhaIA.textContent = dados.resposta;
+        if (resposta.ok) {
+          historico.push({ role: "assistant", content: dados.resposta });
+        } else {
+          historico.pop(); // tira a pergunta que deu erro da memória
+        }
+      } catch (erro) {
+        bolhaIA.textContent = "Não consegui falar com o servidor. O app.py está rodando?";
+        historico.pop();
+      }
+ 
+      botaoEnviar.disabled = false;
+      campoTexto.focus();
+    });
+ 
+    // Botão "Nova conversa": apaga a memória e a tela
+    document.getElementById("limpar").addEventListener("click", function () {
+      historico = [];
+      areaMensagens.innerHTML = "";
+      mostrarMensagem("Conversa nova! Sobre o que vamos falar?", "ia");
+    });
+  </script>
+</body>
+</html>
+
+Entendendo o chat.html
+•let historico = [] é a memória da conversa. Cada pergunta e cada resposta são guardadas aqui.
+•fetch("/api/chat", ...) envia o histórico inteiro para o app.py e espera a resposta.
+•mostrarMensagem() cria as bolhas na tela (classe usuario ou ia).
+•O botão Nova conversa apaga o histórico: o bot “esquece” tudo e começa do zero.
+{{ url_for('static', filename='style.css') }} e {{ modelo }} são comandos do Flask que ele troca pelo caminho do CSS e pelo nome do modelo.
