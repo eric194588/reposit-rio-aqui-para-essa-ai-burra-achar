@@ -58,12 +58,24 @@ jobs:
           java -version
           haxe -version
 
+      - name: Restore pinned Haxelib cache
+        uses: actions/cache/restore@v4
+        with:
+          key: fnf-mobile-haxelibs-haxe437-v1
+          path: |
+            ~/haxelib
+            ~/.haxelib
+
       - name: Install required Haxe libraries
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p "$HOME/haxelib"
           haxelib setup "$HOME/haxelib"
+          if [ -f "$HOME/haxelib/.fnf-mobile-haxelibs-v1" ]; then
+            haxelib list | tee installed-haxelibs.txt
+            exit 0
+          fi
           haxelib install lime 8.1.2 --always
           haxelib install openfl 9.3.3 --always
           haxelib install flixel 5.6.1 --always
@@ -77,7 +89,16 @@ jobs:
           haxelib git flxanimate https://github.com/Dot-Stuff/flxanimate 768740a56b26aa0c072720e0d1236b94afe68e3e
           haxelib git linc_luajit https://github.com/superpowers04/linc_luajit 1906c4a96f6bb6df66562b3f24c62f4c5bba14a7
           haxelib git hxcpp https://github.com/HaxeFoundation/hxcpp.git ceb70d040f0792f004ccf1ed7eb6fcea01d7f3ff
+          touch "$HOME/haxelib/.fnf-mobile-haxelibs-v1"
           haxelib list | tee installed-haxelibs.txt
+
+      - name: Save pinned Haxelib cache
+        uses: actions/cache/save@v4
+        with:
+          key: fnf-mobile-haxelibs-haxe437-v1
+          path: |
+            ~/haxelib
+            ~/.haxelib
 
       - name: Configure Lime
         shell: bash
@@ -142,6 +163,12 @@ jobs:
           set -euo pipefail
           python3 ci/fix_mobile_controls.py mobile-source
 
+      - name: Fix other confirmed Android source bugs
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/fix_port_common.py mobile-source
+
       - name: Compile Android debug APK
         shell: bash
         env:
@@ -150,6 +177,9 @@ jobs:
           set -euo pipefail
           cd mobile-source
           haxelib run lime build android -debug > ../android-compile.log 2>&1 || {
+            echo '--- EXCERTO DOS ERROS DE COMPILACAO ---'
+            grep -E 'ERROR|Type not found|Unknown identifier|has no field|Cannot|should be|Missing|error:' ../android-compile.log | tail -100 || true
+            echo '--- ULTIMAS LINHAS ---'
             tail -100 ../android-compile.log
             exit 1
           }
