@@ -178,6 +178,13 @@ touch_source=r'''
 
 '''
 s=s[:start]+touch_source+s[end:]
+for stale_import in (
+    'import flixel.input.actions.FlxActionInput;',
+    'import flixel.input.actions.FlxAction.FlxActionDigital;',
+    'import flixel.input.actions.FlxActionInputDigital.FlxActionInputDigitalIFlxInput;',
+    'import flixel.input.FlxInput.FlxInputState;',
+):
+    s=s.replace(stale_import + '\n', '')
 for stale in ("forEachBound(", "FlxActionInputDigitalIFlxInput", "digitalActions", "Control.NOTE_"):
     if stale in s:
         raise RuntimeError("Old action API survived replacement: "+stale)
