@@ -27,6 +27,9 @@ jobs:
           test -f mobile-source/Project.xml
           test -f mobile-source/source/Main.hx
 
+      - name: Validate source patch scripts
+        run: python3 -m py_compile ci/fix_mobile_controls.py ci/fix_port_common.py
+
       - name: Setup Haxe 4.3.7
         uses: krdlab/setup-haxe@v2
         with:
