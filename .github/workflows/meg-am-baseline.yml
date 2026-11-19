@@ -90,6 +90,21 @@ jobs:
           haxelib run lime config ANDROID_SETUP true
           haxelib run lime display -project mobile-source/Project.xml android > lime-display.txt 2>&1 || true
 
+      - name: Fix verified upstream StoryMenuState syntax bug
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('mobile-source/source/states/StoryMenuState.hx')
+          data = p.read_text(encoding='utf-8')
+          broken = "rightArrow.animation.play('press')\\n"
+          fixed = "rightArrow.animation.play('press');\\n"
+          if data.count(broken) != 1:
+              raise SystemExit('Unexpected mobile source: syntax patch anchor mismatch')
+          p.write_text(data.replace(broken, fixed), encoding='utf-8')
+          print('StoryMenuState.hx: fixed exactly one missing semicolon')
+          PY
+
       - name: Compile Android debug APK
         shell: bash
         env:
