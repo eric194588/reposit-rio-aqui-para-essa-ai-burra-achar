@@ -73,6 +73,7 @@ jobs:
           haxelib install tjson 1.4.0 --always
           haxelib install hscript-iris 1.1.3 --always
           haxelib install hxvlc 2.0.1 --skip-dependencies --always
+          haxelib install extension-androidtools 2.2.2 --always
           haxelib git flxanimate https://github.com/Dot-Stuff/flxanimate 768740a56b26aa0c072720e0d1236b94afe68e3e
           haxelib git linc_luajit https://github.com/superpowers04/linc_luajit 1906c4a96f6bb6df66562b3f24c62f4c5bba14a7
           haxelib git hxcpp https://github.com/HaxeFoundation/hxcpp.git ceb70d040f0792f004ccf1ed7eb6fcea01d7f3ff
@@ -103,6 +104,36 @@ jobs:
               raise SystemExit('Unexpected mobile source: syntax patch anchor mismatch')
           p.write_text(data.replace(broken, fixed), encoding='utf-8')
           print('StoryMenuState.hx: fixed exactly one missing semicolon')
+          PY
+
+      - name: Resolve Android native extension and missing mobile type imports
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          root = Path('mobile-source')
+          main = root/'source/Main.hx'
+          text = main.read_text()
+          old = 'import android.content.Context;'
+          assert text.count(old) == 1, 'Main Context import changed upstream'
+          main.write_text(text.replace(old, 'import extension.androidtools.content.Context;'))
+          project = root/'Project.xml'
+          text = project.read_text()
+          marker = '</project>'
+          assert text.count(marker) == 1 and 'extension-androidtools' not in text, 'Project.xml unexpected'
+          project.write_text(text.replace(marker, '  <haxelib name="extension-androidtools" if="android" />\n' + marker))
+          controls = root/'source/backend/Controls.hx'
+          text = controls.read_text()
+          marker = 'import flixel.input.keyboard.FlxKey;'
+          assert text.count(marker) == 1
+          additions = ('\nimport flixel.input.actions.FlxActionInput;'
+                       '\nimport flixel.input.actions.FlxAction.FlxActionDigital;'
+                       '\nimport flixel.input.actions.FlxActionInputDigital.FlxActionInputDigitalIFlxInput;'
+                       '\nimport flixel.input.FlxInput.FlxInputState;'
+                       '\nimport mobile.flixel.FlxVirtualPad.FlxDPadMode;'
+                       '\nimport mobile.flixel.FlxVirtualPad.FlxActionMode;')
+          controls.write_text(text.replace(marker, marker + additions))
+          print('Context and missing mobile types patched in temporary source checkout')
           PY
 
       - name: Compile Android debug APK
