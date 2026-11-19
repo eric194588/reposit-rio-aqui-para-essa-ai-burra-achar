@@ -103,6 +103,19 @@ jobs:
             ~/haxelib
             ~/.haxelib
 
+      - name: Bootstrap hxcpp tools from pinned git source
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="$HOME/haxelib/hxcpp/git"
+          test -f "$root/tools/hxcpp/compile.hxml"
+          if [ ! -f "$root/hxcpp.n" ]; then
+            (cd "$root/tools/run" && haxe compile.hxml)
+            (cd "$root/tools/hxcpp" && haxe compile.hxml)
+          fi
+          test -f "$root/hxcpp.n"
+          echo 'hxcpp.n compiled successfully'
+
       - name: Configure Lime
         shell: bash
         env:
