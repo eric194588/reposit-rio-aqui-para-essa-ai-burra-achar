@@ -38,9 +38,6 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Setup NDK r27c
         id: setup_ndk
         uses: nttld/setup-ndk@v1
@@ -52,7 +49,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          sdkmanager 'platforms;android-33' 'build-tools;33.0.2' 'platform-tools'
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -name sdkmanager -type f | sort -V | tail -n1)"
+          test -x "$SDKMANAGER"
+          echo "SDK manager: $SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" 'platforms;android-33' 'build-tools;33.0.2' 'platform-tools'
+          echo "$(dirname "$SDKMANAGER")" >> "$GITHUB_PATH"
           java -version
           haxe -version
 
