@@ -21,3 +21,10 @@ s=p.read_text()
 if s.count("Util.existsLOL(") < 3: raise RuntimeError("Expected at least 3 mobile Utils old references")
 p.write_text(s.replace("Util.existsLOL(", "Utils.existsLOL("))
 print("Fixed:",p,"Util.existsLOL => Utils.existsLOL")
+
+patch_once("source/mobile/Utils.hx",
+           "private static function saveContent(path:String, content:String):Void",
+           "public static function saveContent(path:String, content:String):Void")
+patch_once("source/mobile/flixel/FlxVirtualPad.hx",
+           "\tA_B_C;\n",
+           "\tA_B_C;\n\tA_B_C_X;\n")
