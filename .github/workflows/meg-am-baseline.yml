@@ -136,6 +136,12 @@ jobs:
           print('Context and missing mobile types patched in temporary source checkout')
           PY
 
+      - name: Rewrite incomplete touch action bindings
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 ci/fix_mobile_controls.py mobile-source
+
       - name: Compile Android debug APK
         shell: bash
         env:
