@@ -111,7 +111,7 @@ touch_source=r'''
 				bindTouch("accept", pad.buttonA, trackedInputsUI);
 			case B:
 				bindTouch("back", pad.buttonB, trackedInputsUI);
-			case A_B | A_B_C | A_B_E | A_B_X_Y | A_B_C_X_Y | A_B_C_X_Y_Z | A_B_C_D_V_X_Y_Z:
+			case A_B | A_B_C | A_B_C_X | A_B_E | A_B_X_Y | A_B_C_X_Y | A_B_C_X_Y_Z | A_B_C_D_V_X_Y_Z:
 				bindTouch("accept", pad.buttonA, trackedInputsUI);
 				bindTouch("back", pad.buttonB, trackedInputsUI);
 			case NONE:
@@ -153,7 +153,7 @@ touch_source=r'''
 				bindTouch("accept", pad.buttonA, trackedInputsNOTES);
 			case B:
 				bindTouch("back", pad.buttonB, trackedInputsNOTES);
-			case A_B | A_B_C | A_B_E | A_B_X_Y | A_B_C_X_Y | A_B_C_X_Y_Z | A_B_C_D_V_X_Y_Z:
+			case A_B | A_B_C | A_B_C_X | A_B_E | A_B_X_Y | A_B_C_X_Y | A_B_C_X_Y_Z | A_B_C_D_V_X_Y_Z:
 				bindTouch("accept", pad.buttonA, trackedInputsNOTES);
 				bindTouch("back", pad.buttonB, trackedInputsNOTES);
 			case NONE:
